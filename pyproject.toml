@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yumako"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Nanw1103"]
 readme = "README.md"
@@ -28,18 +28,19 @@ python = "^3.11"
 pytest = "^7.4.3"
 black = "^23.11.0"
 isort = "^5.12.0"
-flake8 = "^6.1.0"
 mypy = "^1.7.1"
 ruff = "^0.1.6"
+tomlkit = "^0.12.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-lint = "scripts:lint"
-check = "scripts:check"
-test = "scripts:test"
+lint = "yumako.dev:lint"
+check = "yumako.dev:check"
+test = "yumako.dev:test"
+release = "yumako.dev:release"
 
 [tool.black]
 line-length = 120
@@ -64,13 +65,19 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 check_untyped_defs = true
-exclude = [".venv"]
+exclude = [
+    ".venv",
+    "src/yumako/dev.py"
+]
 
 [tool.ruff]
 line-length = 120
 target-version = "py310"
 select = ["E", "F", "I", "N", "W", "B", "UP"]
-exclude = [".venv"]
+exclude = [
+    ".venv",
+    "__init__.py"
+]
 src = ["src", "tests"]
 
 [tool.pytest.ini_options]
