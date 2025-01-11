@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yumako"
-version = "0.1.1"
+version = "0.1.2"
 description = ""
 authors = ["Nanw1103"]
 readme = "README.md"
@@ -37,10 +37,8 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-lint = "yumako.dev:lint"
-check = "yumako.dev:check"
-test = "yumako.dev:test"
-release = "yumako.dev:release"
+lint = "dev.scripts:lint"
+release = "dev.scripts:release"
 
 [tool.black]
 line-length = 120
