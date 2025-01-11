@@ -1,6 +1,6 @@
-# Yumako
-Vanilla python utilities
+# Yumako ![Yumako](doc/yumako.png) 
 
+Vanilla python utilities
 
 
 

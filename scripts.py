@@ -27,4 +27,3 @@ def check() -> None:
 def test() -> None:
     """Run tests."""
     run_command(["pytest"])
-
