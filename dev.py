@@ -1,3 +1,5 @@
+#!/usr/bin/env -S python3 -W ignore
+
 import subprocess
 import sys
 from pathlib import Path
@@ -65,14 +67,8 @@ def bump_version(version_type: str = "patch") -> str:
 
 
 def release() -> None:
-    # Determine version bump type from args (default to patch)
-    version_type = sys.argv[1] if len(sys.argv) > 1 else "patch"
-    if version_type not in ("major", "minor", "patch"):
-        print("Version type must be 'major', 'minor', or 'patch'")
-        sys.exit(1)
-
     # Bump version
-    new_version = bump_version(version_type)
+    new_version = bump_version()
     print(f"Bumped version to {new_version}")
 
     # Build and publish
@@ -86,10 +82,25 @@ def release() -> None:
         run_command(["git", "add", "pyproject.toml"])
         run_command(["git", "commit", "-m", f"Bump version to {new_version}"])
         run_command(["git", "tag", f"v{new_version}"])
-        run_command(["git", "push"])
-        run_command(["git", "push", "--tags"])
+        # run_command(["git", "push"])
+        # run_command(["git", "push", "--tags"])
 
         print(f"Successfully published version {new_version}")
     except subprocess.CalledProcessError as e:
         print(f"Error during publish: {e}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Please specify operation: lint or release")
+        sys.exit(1)
+
+    operation = sys.argv[1]
+    if operation == "lint":
+        lint()
+    elif operation == "release":
+        release()
+    else:
+        print("Unknown operation. Supported operations: lint, release")
         sys.exit(1)
