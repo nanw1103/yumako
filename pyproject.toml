@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yumako"
-version = "0.1.8"
+version = "0.1.9"
 description = ""
 authors = ["Nanw1103"]
 readme = "README.md"
@@ -23,7 +23,7 @@ classifiers = [
 packages = [
     { include = "yumako", from = "src", format = ["sdist"] }
 ]
-exclude = ["tests", "tests.*"]
+exclude = ["tests", "tests.*", "examples"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
