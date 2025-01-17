@@ -14,24 +14,34 @@ Vanilla python utilities.
 Install:
 ```bash
 pip install yumako
+
+# Yumako utilities are based on vanilla python: no other dependencies.
 ```
 
 Usage:
 ```python
 import yumako
-
-
-# Yumako utilities are based on vanilla python: no other dependencies.
-
 # Yumako submodules are loaded only when needed.
 
-# Yumako utilities are designed for human:
-print(yumako.time.of("2025-01-17"))
-print(yumako.time.of("-3d"))
+# ---------------------------------------
+# Yumako utilities are designed for human
+# ---------------------------------------
+print(yumako.time.of("2025-01-17H23:00:00.000-05:00"))  # Any popular timeformat
+print(yumako.time.of("-3d"))  # 3 days ago
 
-#Yumako consists of highly performant libraries:
-lru = yumako.lru.LRUDict(1000)
+seconds = yumako.time.duration("3m4s")  # 3m4s -> 184 seconds
+delta = timedelta(seconds=seconds)
+print(yumako.time.display(delta))  # 3m4s
+
+# ---------------------------------------
+# Yumako utilities are highly performant
+# ---------------------------------------
+lru = yumako.lru.LRUDict()
 lru[1] = True
-lru["hello"] = "ユマ果"
+lru["hello"] = "mortal"
 print(lru)
+
+lru_set = yumako.lru.LRUSet()
+lru_set.add("ユマ果")
+print(lru_set)
 ```
