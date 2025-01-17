@@ -67,14 +67,15 @@ def bump_version(version_type: str = "patch") -> str:
 
 
 def release() -> None:
-    # Bump version
-    new_version = bump_version()
-    print(f"Bumped version to {new_version}")
-
     # Build and publish
     try:
         lint()
         test()
+
+        # Bump version
+        new_version = bump_version()
+        print(f"Bumped version to {new_version}")
+
         run_command(["poetry", "build"])
         run_command(["poetry", "publish"])
 

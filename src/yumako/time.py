@@ -1,5 +1,6 @@
 import re
 from datetime import datetime, timedelta, timezone
+from typing import Union
 
 
 def display(d: timedelta, use_double_digits: bool = False) -> str:
@@ -165,7 +166,7 @@ _all_human_time_formats = [
 _COMPILED_PATTERNS = [(re.compile(pattern), handler) for pattern, handler in _all_human_time_formats]
 
 
-def of(human_time: str | datetime | int | float) -> datetime:
+def of(human_time: Union[str, datetime, int, float]) -> datetime:
     """
     Convert various time formats (ISO-8601, Unix timestamps, relative times, etc.) to a datetime object.
 

@@ -304,8 +304,8 @@ def test_of_edge_cases() -> None:
 
 def test_of_relative_time_edge_cases() -> None:
     # Test zero values
-    assert of("+0h") == of("now")
-    assert of("-0d") == of("now")
+    assert of("+0h").replace(second=0, microsecond=0) == of("now").replace(second=0, microsecond=0)
+    assert of("-0d").replace(second=0, microsecond=0) == of("now").replace(second=0, microsecond=0)
 
     # Test decimal values in timestamps
     ts = datetime(2023, 12, 4, 12, 0, 0, tzinfo=timezone.utc).timestamp()
