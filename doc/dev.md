@@ -1,25 +1,23 @@
-# Dev
-```
+# Setup
+```bash
 poetry install
-#poetry run lint
-poetry run python dev.py lint
-#poetry run test
-poetry run python dev.py test
-```
-
-## Config
-```
 poetry config pypi-token.pypi YOUR_PYPI_TOKEN
 ```
 
-## Publish
-```
-# Build
+# Dev
+```bash
+#Lint
+poetry run python dev.py lint
+
+#Test
+poetry run pytest
+poetry run pytest tests/test_lru.py -x
+
+#Build
 poetry build
-poetry publish
 ```
 
-Run a specific test file
-```
-poetry run pytest tests/test_lru.py -x
+# Release
+```bash
+poetry run python dev.py release
 ```

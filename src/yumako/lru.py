@@ -58,7 +58,7 @@ class LRUSet(MutableSet[Any]):
     _new_cache: MutableSet[Any]
     _old_cache: MutableSet[Any]
 
-    def __init__(self, capacity: int, weak: bool = True) -> None:
+    def __init__(self, capacity: int = 32, weak: bool = False) -> None:
         if not isinstance(capacity, int):
             raise TypeError("capacity must be an integer")
         if capacity <= 0:
@@ -201,7 +201,7 @@ class LRUDict(MutableMapping[Any, Any]):
     _new_cache: MutableMapping[Any, Any]
     _old_cache: MutableMapping[Any, Any]
 
-    def __init__(self, capacity: int, weak: bool = True) -> None:
+    def __init__(self, capacity: int = 32, weak: bool = False) -> None:
         if not isinstance(capacity, int):
             raise TypeError("capacity must be an integer")
         if capacity <= 0:

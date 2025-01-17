@@ -156,7 +156,7 @@ def test_set_clear():
 
 def test_set_non_weakrefable():
     """Test adding non-weakrefable items."""
-    lru = LRUSet(capacity=2)
+    lru = LRUSet(capacity=2, weak=True)
 
     # These should raise TypeError
     with pytest.raises(TypeError):
@@ -197,7 +197,7 @@ def test_set_stress():
 
 def test_set_weak_reference_chain():
     """Test weak reference behavior with chain of references."""
-    lru = LRUSet(capacity=3)
+    lru = LRUSet(capacity=3, weak=True)
 
     class Container:
         def __init__(self, item):
@@ -446,7 +446,7 @@ def test_dict_stress():
 
 def test_dict_weak_reference_chain():
     """Test weak reference behavior with chain of references."""
-    lru = LRUDict(capacity=3)
+    lru = LRUDict(capacity=3, weak=True)
 
     class Container:
         def __init__(self, value):
@@ -690,7 +690,7 @@ def test_set_basic_types():
 def test_set_basic_types_weak():
     """Test LRUSet with basic Python types."""
     # Should raise TypeError for non-referenceable types
-    lru = LRUSet(capacity=3)
+    lru = LRUSet(capacity=3, weak=True)
 
     with pytest.raises(TypeError):
         lru.add(42)  # int is not weakref-able
