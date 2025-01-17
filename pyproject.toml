@@ -23,6 +23,7 @@ classifiers = [
 packages = [
     { include = "yumako", from = "src", format = ["sdist"] }
 ]
+exclude = ["tests", "tests.*"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -38,7 +39,6 @@ tomlkit = "^0.12.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
 
 [tool.black]
 line-length = 120
@@ -86,3 +86,4 @@ filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::UserWarning",
 ]
+
