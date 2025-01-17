@@ -11,19 +11,25 @@ Vanilla python utilities.
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 
 
+Install:
+```bash
+pip install yumako
+```
+
 Usage:
 ```python
 import yumako
-```
 
-Yumako utilities are designed for human:
-```python
+
+# Yumako utilities are based on vanilla python: no other dependencies.
+
+# Yumako submodules are loaded only when needed.
+
+# Yumako utilities are designed for human:
 print(yumako.time.of("2025-01-17"))
 print(yumako.time.of("-3d"))
-```
 
-Yumako consists of extreme performant libraries:
-```python
+#Yumako consists of highly performant libraries:
 lru = yumako.lru.LRUDict(1000)
 lru[1] = True
 lru["hello"] = "ユマ果"
