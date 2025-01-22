@@ -7,7 +7,9 @@ readme = "README.md"
 license = "MIT"
 homepage = "https://github.com/nanw1103/yumako"
 repository = "https://github.com/nanw1103/yumako"
-documentation = "https://github.com/nanw1103/amyumakober#readme"
+documentation = "https://github.com/nanw1103/yumako#readme"
+"Bug Tracker" = "https://github.com/nanw1103/yumako/issues"
+
 keywords = ["util", "vanilla"]
 classifiers = [
     "Development Status :: 4 - Beta",
