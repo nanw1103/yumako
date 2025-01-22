@@ -7,7 +7,7 @@ print(yumako.time.of("2025-01-17"))
 print(yumako.time.of("-3d"))
 
 
-#Yumako utilities are highly performant:
+# Yumako utilities are highly performant:
 lru = yumako.lru.LRUDict()
 lru[1] = True
 lru["hello"] = "mortal"

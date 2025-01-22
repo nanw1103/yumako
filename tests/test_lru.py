@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 
 from yumako.lru import LRUDict, LRUSet
@@ -355,13 +357,13 @@ def test_dict_get():
 def test_set_operations():
     """Test set comparison operations."""
     capacity = 3
-    lru = LRUSet(capacity=capacity)
+    lru: LRUSet[Item] = LRUSet[Item](capacity=capacity)
     items = [Item(i) for i in range(3)]
 
     # Create reference sets
-    empty_set = set()
-    full_set = {items[0], items[1], items[2]}
-    subset = {items[0], items[1]}
+    empty_set: set[Item] = set()
+    full_set: set[Item] = {items[0], items[1], items[2]}
+    subset: set[Item] = {items[0], items[1]}
 
     # Test empty set
     assert lru <= empty_set
@@ -391,7 +393,7 @@ def test_set_operations():
 def test_dict_str_repr():
     """Test string representations."""
     capacity = 3
-    lru = LRUDict(capacity=capacity, weak=False)
+    lru: LRUDict[str, Value] = LRUDict[str, Value](capacity=capacity, weak=False)
     values = [Value(i) for i in range(2)]
 
     # Empty dict
@@ -492,15 +494,15 @@ def test_dict_edge_cases():
 def test_dict_update():
     """Test update method behavior."""
     capacity = 3
-    lru = LRUDict(capacity=capacity)
+    lru: LRUDict[str, Value] = LRUDict[str, Value](capacity=capacity)
     val1 = Value(1)
     val2 = Value(2)
     val3 = Value(3)
     val4 = Value(4)
 
     # Test different update patterns
-    # 1. Update empty dict
-    lru.update({"a": val1})
+    update_dict: dict[str, Value] = {"a": val1}
+    lru.update(update_dict)
     assert len(lru) <= capacity
     assert lru["a"] == val1
 
@@ -615,8 +617,8 @@ def test_set_mixed_operations():
 
 def test_set_dict_interaction():
     """Test interaction between LRUSet and LRUDict with shared objects."""
-    set_lru = LRUSet(capacity=3)
-    dict_lru = LRUDict(capacity=3)
+    set_lru: LRUSet[Item] = LRUSet[Item](capacity=3)
+    dict_lru: LRUDict[str, Value] = LRUDict[str, Value](capacity=3)
 
     # Create shared objects
     items = [Item(i) for i in range(3)]
@@ -676,8 +678,8 @@ def test_dict_invalid_capacity():
 
 def test_set_basic_types():
     """Test LRUSet with basic Python types."""
+    lru: LRUSet[Any] = LRUSet[Any](capacity=3, weak=False)
     # Should raise TypeError for non-referenceable types
-    lru = LRUSet(capacity=3, weak=False)
     lru.add(42)
     lru.add("string")
     lru.add((1, 2, 3))
@@ -718,7 +720,7 @@ def test_set_basic_types_weak():
 
 def test_dict_basic_types():
     """Test LRUDict with basic Python types as values."""
-    lru = LRUDict(capacity=3, weak=False)
+    lru: LRUDict[Any, Value] = LRUDict[Any, Value](capacity=3, weak=False)
 
     # Basic types as keys (should work)
     lru[42] = Value(1)  # int key
@@ -791,8 +793,8 @@ def test_dict_clear():
 def test_dict_iteration():
     """Test dictionary iteration methods."""
     capacity = 3
-    lru = LRUDict(capacity=capacity)
-    values = [Value(i) for i in range(3)]
+    lru: LRUDict[str, Value] = LRUDict[str, Value](capacity=capacity)
+    values: list[Value] = [Value(i) for i in range(3)]
 
     # Add items
     for i, val in enumerate(values):
@@ -808,3 +810,57 @@ def test_dict_iteration():
 
     # Test items
     assert set(lru.items()) == {("0", values[0]), ("1", values[1]), ("2", values[2])}
+
+
+def test_set_type():
+    """Test that LRUSet properly enforces types."""
+    # Explicitly typed sets
+    str_set: LRUSet[str] = LRUSet[str](capacity=3)
+    int_set: LRUSet[int] = LRUSet[int](capacity=3)
+    item_set: LRUSet[Item] = LRUSet[Item](capacity=3)
+
+    # These should work
+    str_set.add("hello")
+    int_set.add(42)
+    item_set.add(Item(1))
+
+
+def test_dict_type():
+    """Test that LRUDict properly enforces types."""
+    # Explicitly typed dictionaries
+    str_int_dict: LRUDict[str, int] = LRUDict[str, int](capacity=3)
+    int_value_dict: LRUDict[int, Value] = LRUDict[int, Value](capacity=3)
+
+    # These should work
+    str_int_dict["hello"] = 42
+    int_value_dict[1] = Value(42)
+
+
+def test_set_mixed_types():
+    """Test that LRUSet handles mixed types correctly when explicitly typed."""
+    # Create a set that can hold Any type
+    any_set: LRUSet[Any] = LRUSet[Any](capacity=3)
+
+    # This should work since it's explicitly typed as Any
+    any_set.add(42)
+    any_set.add("string")
+    any_set.add(Item(1))
+
+    assert 42 in any_set
+    assert "string" in any_set
+    assert Item(1) in any_set
+
+
+def test_dict_mixed_types():
+    """Test that LRUDict handles mixed types correctly when explicitly typed."""
+    # Create a dict that can hold Any type as value
+    any_dict: LRUDict[str, Any] = LRUDict[str, Any](capacity=3)
+
+    # This should work since values are explicitly typed as Any
+    any_dict["int"] = 42
+    any_dict["str"] = "string"
+    any_dict["item"] = Item(1)
+
+    assert any_dict["int"] == 42
+    assert any_dict["str"] == "string"
+    assert any_dict["item"] == Item(1)

@@ -1,6 +1,6 @@
 from collections import ChainMap
 from collections.abc import ItemsView, Iterator, KeysView, MutableMapping, MutableSet, ValuesView
-from typing import Any, TypeVar
+from typing import TypeVar, cast
 from weakref import WeakSet, WeakValueDictionary
 
 T = TypeVar("T")  # Item type for Set
@@ -8,7 +8,7 @@ K = TypeVar("K")  # Key type
 V = TypeVar("V")  # Value type
 
 
-class LRUSet(MutableSet[Any]):
+class LRUSet(MutableSet[T]):
     """A Least Recently Used (LRU) Set with weak references and fixed capacity.
 
     Implementation:
@@ -55,8 +55,8 @@ class LRUSet(MutableSet[Any]):
     """
 
     _capacity: int
-    _new_cache: MutableSet[Any]
-    _old_cache: MutableSet[Any]
+    _new_cache: MutableSet[T]
+    _old_cache: MutableSet[T]
 
     def __init__(self, capacity: int = 32, weak: bool = False) -> None:
         if not isinstance(capacity, int):
@@ -69,7 +69,7 @@ class LRUSet(MutableSet[Any]):
         self._new_cache = WeakSet() if weak else set()  # Recently used items
         self._old_cache = WeakSet() if weak else set()  # Less recently used items
 
-    def add(self, item: Any) -> None:
+    def add(self, item: T) -> None:
         """Add an item to the set."""
         # If item exists in new_cache, we're done
         if item in self._new_cache:
@@ -83,7 +83,7 @@ class LRUSet(MutableSet[Any]):
             # Remove from old_cache if present
             self._old_cache.discard(item)
 
-    def discard(self, item: Any) -> None:
+    def discard(self, item: T) -> None:
         """Remove an item from the set if it exists."""
         self._new_cache.discard(item)
         self._old_cache.discard(item)
@@ -95,10 +95,11 @@ class LRUSet(MutableSet[Any]):
 
         if item in self._old_cache:
             # Promote to new_cache
-            self._new_cache.add(item)
+            item_t = cast(T, item)  # Safe cast since we checked type above
+            self._new_cache.add(item_t)
 
             if not self._ensure_rotation():
-                self._old_cache.discard(item)
+                self._old_cache.discard(item_t)
             return True
 
         return False
@@ -115,7 +116,7 @@ class LRUSet(MutableSet[Any]):
         """Return total number of items across both caches."""
         return len(self._new_cache) + len(self._old_cache)
 
-    def __iter__(self) -> Iterator[Any]:
+    def __iter__(self) -> Iterator[T]:
         """Iterate over all items in the set."""
         # Yield from new_cache first
         yield from self._new_cache
@@ -149,7 +150,7 @@ class LRUSet(MutableSet[Any]):
         return "{" + items + "}"
 
 
-class LRUDict(MutableMapping[Any, Any]):
+class LRUDict(MutableMapping[K, V]):
     """A Least Recently Used (LRU) Dictionary with weak references and fixed capacity.
 
     Implementation:
@@ -198,8 +199,8 @@ class LRUDict(MutableMapping[Any, Any]):
 
     _capacity: int
     _weak: bool
-    _new_cache: MutableMapping[Any, Any]
-    _old_cache: MutableMapping[Any, Any]
+    _new_cache: MutableMapping[K, V]
+    _old_cache: MutableMapping[K, V]
 
     def __init__(self, capacity: int = 32, weak: bool = False) -> None:
         if not isinstance(capacity, int):
@@ -220,7 +221,7 @@ class LRUDict(MutableMapping[Any, Any]):
         self._new_cache = WeakValueDictionary() if self._weak else dict()
         return True
 
-    def __setitem__(self, key: Any, value: Any) -> None:
+    def __setitem__(self, key: K, value: V) -> None:
         if key in self._new_cache:
             self._new_cache[key] = value
             return
@@ -232,7 +233,7 @@ class LRUDict(MutableMapping[Any, Any]):
             # Remove from old_cache if present
             self._old_cache.pop(key, None)
 
-    def __getitem__(self, key: Any) -> Any:
+    def __getitem__(self, key: K) -> V:
         # Check new_cache first
         try:
             return self._new_cache[key]
@@ -258,7 +259,8 @@ class LRUDict(MutableMapping[Any, Any]):
 
     def __contains__(self, key: object) -> bool:
         """Return True if key exists in the dictionary."""
-        return key in self._new_cache or key in self._old_cache
+        key_k = cast(K, key)  # Safe cast since we checked type above
+        return key_k in self._new_cache or key_k in self._old_cache
 
     def __iter__(self) -> Iterator[K]:
         yield from self._new_cache
@@ -272,18 +274,18 @@ class LRUDict(MutableMapping[Any, Any]):
     def capacity(self) -> int:
         return self._capacity
 
-    def items(self) -> ItemsView[Any, Any]:
+    def items(self) -> ItemsView[K, V]:
         """Iterate over (key, value) pairs in LRU order."""
         # Create a dict view directly from the caches without intermediate dicts
         combined = ChainMap(self._new_cache, self._old_cache)
         return ItemsView(combined)
 
-    def keys(self) -> KeysView[Any]:
+    def keys(self) -> KeysView[K]:
         """Iterate over keys in LRU order."""
         combined = ChainMap(self._new_cache, self._old_cache)
         return KeysView(combined)
 
-    def values(self) -> ValuesView[Any]:
+    def values(self) -> ValuesView[V]:
         """Iterate over values in LRU order."""
         combined = ChainMap(self._new_cache, self._old_cache)
         return ValuesView(combined)
@@ -294,7 +296,7 @@ class LRUDict(MutableMapping[Any, Any]):
     def __str__(self) -> str:
         return str(dict(self.items()))
 
-    def popitem(self) -> tuple[Any, Any]:
+    def popitem(self) -> tuple[K, V]:
         """Remove and return the most recently used item.
 
         Returns:

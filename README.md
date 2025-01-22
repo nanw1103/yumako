@@ -1,6 +1,6 @@
 # Yumako ![Yumako](doc/yumako.png) 
 
-Vanilla python utilities.
+Vanilla python utilities, for humans.
 
 [![PyPI version](https://badge.fury.io/py/yumako.svg)](https://badge.fury.io/py/yumako)
 [![Python Versions](https://img.shields.io/pypi/pyversions/yumako.svg)](https://pypi.org/project/yumako/)
@@ -10,7 +10,7 @@ Vanilla python utilities.
 [![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 [![Typed](https://img.shields.io/badge/Typed-Yes-blue.svg)](https://github.com/yumako/yumako)
-[![Downloads](https://static.pepy.tech/badge/yumako)](https://pepy.tech/project/yumako)
+[![Downloads](https://static.pepy.tech/badge/yumako)](https://pepy.tech/projects/yumako)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 [![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit)
 [![Sourcery](https://img.shields.io/badge/Sourcery-enabled-brightgreen)](https://sourcery.ai)
