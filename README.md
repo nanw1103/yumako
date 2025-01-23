@@ -14,6 +14,7 @@ Vanilla python utilities, for humans.
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 [![security: bandit](https://img.shields.io/badge/security-bandit-yellow.svg)](https://github.com/PyCQA/bandit)
 [![Sourcery](https://img.shields.io/badge/Sourcery-enabled-brightgreen)](https://sourcery.ai)
+[![pylint: errors-only](https://img.shields.io/badge/pylint-errors--only-brightgreen)](https://github.com/pylint-dev/pylint)
 
 
 
@@ -34,8 +35,8 @@ import yumako
 # ---------------------------------------
 # Yumako utilities are designed for human
 # ---------------------------------------
-print(yumako.time.of("2025-01-17H23:00:00.000-05:00"))  # Any popular timeformat
-print(yumako.time.of("-3d"))  # 3 days ago
+print(yumako.time.of("2025-01-17H23:00:00.000-05:00"))  # most popular time formats
+print(yumako.time.of("-3d"))  # most intuitive human-friendly formats
 
 seconds = yumako.time.duration("3m4s")  # 3m4s -> 184 seconds
 delta = timedelta(seconds=seconds)

@@ -17,6 +17,7 @@ def lint() -> None:
     # run_command(["flake8", "src"])
     run_command(["mypy", "src"])
     run_command(["ruff", "check", ".", "--fix"])
+    run_command(["pylint", "--errors-only", "--disable=import-error", "."])
 
 
 def check() -> None:
