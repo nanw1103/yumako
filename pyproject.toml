@@ -1,25 +1,22 @@
-[tool.poetry]
+[project]
 name = "yumako"
-version = "0.1.10"
+version = "0.1.12"
 description = ""
-authors = ["Nanw1103"]
+authors = [{ name="Nanw1103", email="nanw1103@gmail.com" }]
 readme = "README.md"
 license = "MIT"
+requires-python = ">=3.9"
 homepage = "https://github.com/nanw1103/yumako"
 repository = "https://github.com/nanw1103/yumako"
 documentation = "https://github.com/nanw1103/yumako#readme"
 "Bug Tracker" = "https://github.com/nanw1103/yumako/issues"
 
-keywords = ["util", "vanilla"]
+keywords = ["util", "vanilla", "for humans"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3",
 ]
 
 packages = [
@@ -39,7 +36,7 @@ ruff = "^0.1.6"
 tomlkit = "^0.12.0"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.black]
@@ -88,4 +85,10 @@ filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::UserWarning",
 ]
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "pep440"
+pattern = "^(?P<base>\\d+\\.\\d+\\.\\d+)"
 
