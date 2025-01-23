@@ -1,10 +1,8 @@
-#!/usr/bin/env -S python3 -W ignore
+#!/usr/bin/env -S python -W ignore
 
 import subprocess
 import sys
 from pathlib import Path
-
-import tomlkit
 
 
 def run_command(cmd: list[str]) -> None:
@@ -39,12 +37,15 @@ def bump_version(version_type: str = "patch") -> str:
     """Bump the version in pyproject.toml
     version_type can be 'major', 'minor', or 'patch'
     """
+
+    import tomlkit
+
     pyproject_path = Path("pyproject.toml")
 
     with open(pyproject_path) as f:
         pyproject = tomlkit.parse(f.read())
 
-    current_version = pyproject["tool"]["poetry"]["version"]
+    current_version = pyproject["project"]["version"]
     major, minor, patch = map(int, current_version.split("."))
 
     if version_type == "major":
@@ -58,7 +59,7 @@ def bump_version(version_type: str = "patch") -> str:
         patch += 1
 
     new_version = f"{major}.{minor}.{patch}"
-    pyproject["tool"]["poetry"]["version"] = new_version
+    pyproject["project"]["version"] = new_version
 
     with open(pyproject_path, "w") as f:
         f.write(tomlkit.dumps(pyproject))

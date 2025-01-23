@@ -2,8 +2,6 @@
 Yumako - Vanilla python utilities.
 """
 
-__version__ = "0.1.6"
-
 import importlib
 from types import ModuleType
 from typing import TYPE_CHECKING
