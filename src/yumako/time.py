@@ -1,4 +1,4 @@
-import re
+import re as __re
 from datetime import datetime, timedelta, timezone
 from typing import Union
 
@@ -163,7 +163,7 @@ _all_human_time_formats = [
 ]
 
 # Could cache compiled regex patterns
-_COMPILED_PATTERNS = [(re.compile(pattern), handler) for pattern, handler in _all_human_time_formats]
+_COMPILED_PATTERNS = [(__re.compile(pattern), handler) for pattern, handler in _all_human_time_formats]
 
 
 def of(human_time: Union[str, datetime, int, float]) -> datetime:
@@ -247,7 +247,7 @@ def of(human_time: Union[str, datetime, int, float]) -> datetime:
 
     # Try each format pattern
     for pattern, fmt in _COMPILED_PATTERNS:
-        if re.match(pattern, human_time):
+        if __re.match(pattern, human_time):
             try:
                 if callable(fmt):
                     dt: datetime = fmt(human_time)
@@ -310,7 +310,7 @@ def duration(human_time: str) -> int:
 
     # First try ISO-8601 format
     iso_pattern = r"^P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?)?$"
-    iso_match = re.match(iso_pattern, human_time)
+    iso_match = __re.match(iso_pattern, human_time)
 
     if iso_match:
         # PT with no values specified is invalid - must have at least one value
@@ -327,7 +327,7 @@ def duration(human_time: str) -> int:
 
     # Try human readable format (e.g. 1h30m, 1w2d)
     human_pattern = r"^(?:(\d+)Y)?(?:(\d+)W)?(?:(\d+)D)?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$"
-    human_match = re.match(human_pattern, human_time)
+    human_match = __re.match(human_pattern, human_time)
 
     if human_match:
         years = int(human_match.group(1) or 0)

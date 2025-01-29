@@ -17,7 +17,12 @@ Vanilla python utilities, for humans.
 [![pylint: errors-only](https://img.shields.io/badge/pylint-errors--only-brightgreen)](https://github.com/pylint-dev/pylint)
 
 
+## What Yumako should include
 
+- Human-friendly utilities.
+- Utilities that are for generic use cases, not domain-specific.
+- High performance utilities.
+- Utilities based on vanilla python, no external dependencies. 
 
 
 Install:

@@ -1,4 +1,4 @@
-import re
+import re as __re
 
 
 def replace(
@@ -12,7 +12,7 @@ def replace(
             unused_vars.remove(k)
 
     if strict_on_unresolved_vars:
-        unresolved_vars = re.findall(r"\{\{([^}]+)\}\}", text)
+        unresolved_vars = __re.findall(r"\{\{([^}]+)\}\}", text)
         if unresolved_vars:
             raise Exception(f"Strict mode: template variables unresolved: {unresolved_vars}")
 
