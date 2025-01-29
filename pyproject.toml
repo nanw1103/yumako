@@ -1,6 +1,6 @@
 [project]
 name = "yumako"
-version = "0.1.13"
+version = "0.1.14"
 description = "Vanilla python utilities, for humans."
 authors = [{ name="Nanw1103", email="nanw1103@gmail.com" }]
 readme = "README.md"
@@ -70,12 +70,14 @@ exclude = [
 [tool.ruff]
 line-length = 120
 target-version = "py39"
-select = ["E", "F", "I", "N", "W", "B", "UP"]
+src = ["src", "tests"]
 exclude = [
     ".venv",
     "__init__.py"
 ]
-src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "B", "UP"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
