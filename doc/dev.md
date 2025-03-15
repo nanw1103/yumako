@@ -11,6 +11,8 @@ poetry run python dev.py lint
 
 #Test
 poetry run pytest
+
+# Run single test file
 poetry run pytest tests/test_lru.py -x
 
 #Build

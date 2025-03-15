@@ -1,0 +1,340 @@
+import json
+import logging
+import os
+import shutil
+from collections.abc import Generator
+from os import listdir, path
+from typing import Any, Literal, Optional, TypeVar, Union, overload
+
+log = logging.getLogger(__name__)
+
+FormatType = Literal["auto", "json", "yaml", "yml", "text", "plain", "txt", "json-compact"]
+T = TypeVar("T")
+
+
+def _validate_key(key: str) -> None:
+    """Validate that a key doesn't contain path separators."""
+    if key.find("/") >= 0 or key.find("\\") >= 0:
+        raise ValueError(f"Invalid key (contains path separator): {key}")
+
+
+def _load_yaml(file_name: str) -> Optional[dict[Any, Any]]:
+    """Load and parse a YAML file into a dictionary object."""
+    if not os.path.exists(file_name):
+        return None
+
+    import yaml  # type: ignore[import]
+
+    with open(file_name, "r", encoding="utf-8") as file:
+        return yaml.safe_load(file)
+
+
+def _load_text(file_name: str) -> Optional[str]:
+    """Load a text file's contents."""
+    if not os.path.exists(file_name):
+        return None
+    with open(file_name, "r", encoding="utf-8") as file:
+        return file.read()
+
+
+def _load_json(file_path: str) -> Optional[dict[Any, Any]]:
+    """Load and parse a JSON file into a dictionary object."""
+    if not os.path.exists(file_path):
+        return None
+    with open(file_path, "r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+def _save_json(data: dict, file_path: str, pretty: bool = True) -> None:
+    with open(file_path, "w", encoding="utf-8") as file:
+        json.dump(data, file, indent="\t" if pretty else None, default=vars)
+
+
+def _load_file(file_path: str, format: FormatType) -> Optional[Union[dict, str]]:
+    """Load a file with the specified format.
+
+    Args:
+        file_path: Path to the file to load
+        format: Format to use for loading ("auto", "json", "yaml", etc.)
+
+    Returns:
+        The loaded data as either dotdict or string, or None if file doesn't exist
+
+    Raises:
+        ValueError: If the format is invalid or file can't be loaded
+    """
+    try:
+        _, ext = path.splitext(file_path)
+
+        if ext == ".json" or (ext == "" and format == "json"):
+            return _load_json(file_path)
+        if ext in {".yaml", ".yml"} or (ext == "" and format in {"yaml", "yml"}):
+            return _load_yaml(file_path)
+        if ext == ".txt" or (ext == "" and format in {"text", "plain", "txt"}):
+            return _load_text(file_path)
+
+        if format != "auto":
+            raise ValueError(f"Invalid store format: {format}")
+
+        # Auto-detect format for files without extension
+        if os.path.exists(file_path):
+            return _load_json(file_path)
+
+        for test_ext in [".json", ".yaml", ".yml", ".txt"]:
+            test_path = file_path + test_ext
+            if os.path.exists(test_path):
+                return _load_file(test_path, format)
+
+        return None
+    except Exception as e:
+        raise ValueError(f"Failed to load file {file_path}") from e
+
+
+def _list_sub_dirs(directory: str, depth: int) -> list[str]:
+    """List subdirectories recursively up to specified depth."""
+
+    def recursive_list(current_dir: str, current_depth: int, base_dir: str) -> list[str]:
+        if depth != -1 and current_depth > depth:
+            return []
+        subdirs = []
+        with os.scandir(current_dir) as entries:
+            for entry in entries:
+                if entry.is_dir():
+                    rel_path = os.path.relpath(entry.path, base_dir)
+                    subdirs.append(rel_path)
+                    subdirs.extend(recursive_list(entry.path, current_depth + 1, base_dir))
+        return subdirs
+
+    return recursive_list(directory, 0, directory)
+
+
+class _ManagedDict(dict):
+    """A dictionary that automatically saves changes when used as a context manager."""
+
+    def __init__(self, initial_data: dict, store: "fstore", name: str):
+        super().__init__(initial_data)
+        self._store = store
+        self._name = name
+
+    def __enter__(self) -> "_ManagedDict":
+        return self
+
+    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+        self._store.save(self._name, self)
+
+
+class fstore:
+    """A key-value store, optionally backed by a file system directory and files in it.
+
+    The store can operate in memory-only mode or with filesystem persistence.
+    Supports multiple file formats including JSON, YAML, and plain text.
+    Provides hierarchical storage through child stores.
+
+    Args:
+        store_path: The path to store state files. If None, state will not be stored.
+        create: If store_path is specified, try creating it if not exist.
+    """
+
+    def __init__(self, store_path: Optional[str] = None, create: bool = True):
+        if store_path:
+            self._path = path.realpath(store_path)
+            self._create = create
+            self._path_checked = False
+            self._ensure_dir()
+        else:
+            self._path = None
+        self._cache: dict[str, Any] = {}
+
+    def _get_path(self, key: str) -> Optional[str]:
+        """Get the filesystem path for a key."""
+        if not self._path:
+            return None
+        return path.join(self._path, key)
+
+    def _ensure_dir(self) -> None:
+        """Ensure the store directory exists if filesystem backing is enabled."""
+        if not self._path or self._path_checked:
+            return
+        if path.exists(self._path):
+            if not os.path.isdir(self._path):
+                raise ValueError(f"Store path is not a directory: {self._path}")
+            self._path_checked = True
+            return
+
+        if self._create:
+            os.makedirs(self._path, exist_ok=True)
+        else:
+            raise ValueError(f"Store path does not exist: {self._path}")
+        self._path_checked = True
+
+    @overload
+    def get(self, key: str, *, reload: bool = False, format: FormatType = "auto") -> Optional[Union[dotdict, str]]:
+        ...
+
+    @overload
+    def get(self, key: str, default: T, reload: bool = False, format: FormatType = "auto") -> Union[str, T]:
+        ...
+
+    def get(self, key: str, default: Any = None, reload: bool = False, format: FormatType = "auto") -> Any:
+        """Get a value from the store.
+
+        Args:
+            key: The key to look up
+            default: Value to return if key doesn't exist
+            reload: Force reload from filesystem if True
+            format: Format to use when loading from file
+
+        Returns:
+            The value associated with the key, or default if not found
+        """
+        _validate_key(key)
+        if self._path and (reload or key not in self._cache):
+            file_path = self._get_path(key)
+            if file_path:
+                log.debug(f"Read {file_path}")
+                data = _load_file(file_path, format)
+                if data is not None:
+                    self._cache[key] = data
+
+        data = self._cache.get(key)
+        if data is None and default is not None:
+            return default
+        return data
+
+    def save(self, key: str, data: Any, format: FormatType = "auto") -> Any:
+        """Save a value to the store.
+
+        Args:
+            key: The key to store under
+            data: The data to store
+            format: Format to use for storage
+
+        Returns:
+            The stored data
+
+        Raises:
+            ValueError: If the format is invalid or save fails
+        """
+        _validate_key(key)
+
+        if format == "auto":
+            format = "text" if isinstance(data, str) else "json"
+
+        self._cache[key] = data
+
+        if self._path:
+            self._ensure_dir()
+            file_path = self._get_path(key)
+            if not file_path:
+                return data
+
+            log.debug(f"Write {file_path}")
+            try:
+                if format == "json":
+                    _save_json(data, file_path, pretty=True)
+                elif format == "json-compact":
+                    _save_json(data, file_path, pretty=False)
+                elif format == "yaml":
+                    import yaml
+
+                    with open(file_path, "w", encoding="utf-8") as outfile:
+                        yaml.safe_dump(data, outfile)
+                elif format in {"text", "plain", "txt"}:
+                    with open(file_path, "w", encoding="utf-8") as outfile:
+                        outfile.write(str(data))
+                else:
+                    raise ValueError(f"Invalid format: {format}")
+            except Exception as e:
+                raise ValueError(f"Failed to save to {file_path}") from e
+
+        return data
+
+    def delete(self, key: str) -> None:
+        """Delete a value from the store."""
+        _validate_key(key)
+        self._cache.pop(key, None)
+        if self._path:
+            file_path = self._get_path(key)
+            if file_path and os.path.exists(file_path):
+                os.remove(file_path)
+
+    def keys(self) -> list[str]:
+        """Get all keys in the store."""
+        if self._path:
+            return [f for f in listdir(self._path) if path.isfile(path.join(self._path, f))]
+        return list(self._cache.keys())
+
+    def children(self, depth: int = 0) -> list[str]:
+        """List child stores.
+
+        Args:
+            depth: How deep to traverse (-1 for unlimited)
+
+        Returns:
+            List of child store names
+        """
+        if not self._path:
+            raise NotImplementedError("Child stores not supported for memory-only store")
+
+        if depth == 0:
+            return [f for f in listdir(self._path) if path.isdir(path.join(self._path, f))]
+        return _list_sub_dirs(self._path, depth)
+
+    def child(self, name: str) -> "fstore":
+        """Get a child store."""
+        if not self._path:
+            raise NotImplementedError("Child stores not supported for memory-only store")
+        return fstore(path.join(self._path, name))
+
+    def values(self) -> Generator[Any, None, None]:
+        """Iterate over all values in the store."""
+        for k in self.keys():
+            yield self.get(k)
+
+    def items(self) -> Generator[tuple[str, Any], None, None]:
+        """Iterate over all key-value pairs in the store."""
+        for k in self.keys():
+            yield (k, self.get(k))
+
+    def clear(self) -> None:
+        """Remove all items from the store."""
+        for k in self.keys():
+            self.delete(k)
+
+    def destroy(self) -> None:
+        """Completely remove the store and all its data."""
+        self._cache.clear()
+        if self._path:
+            shutil.rmtree(self._path)
+
+    def contains(self, key: str) -> bool:
+        """Check if a key exists in the store."""
+        return key in self._cache or key in self.keys()
+
+    def patch(self, key: str, data: dict) -> dict:
+        """Update an existing dictionary value with new data.
+
+        Args:
+            key: The key to update
+            data: The new data to merge
+
+        Returns:
+            The updated dictionary
+        """
+        existing_data = self.get(key)
+        if existing_data is None:
+            existing_data = {}
+        existing_data |= data
+        self.save(key, existing_data)
+        return existing_data
+
+    def doc(self, key: str) -> dict:
+        """Get a document that can be used in a context manager.
+
+        Example:
+            with store.doc("config") as config:
+                config["setting"] = "value"
+            # Document is automatically saved on exit
+        """
+        data = self.get(key, {})
+        return _ManagedDict(data, self, key)

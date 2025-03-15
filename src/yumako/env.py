@@ -29,10 +29,19 @@ class _Env(MutableMapping[str, str]):
                     return
 
     def __iter__(self) -> Iterator[str]:
-        return (k.upper() for k in os.environ)
+        return iter(os.environ)
 
     def __len__(self) -> "int":
         return len(os.environ)
+
+    def __str__(self) -> str:
+        """Return a readable string representation of arguments."""
+        return str(dict(self))
+
+    def __repr__(self) -> str:
+        """Return a detailed string representation for debugging."""
+        cls_name = self.__class__.__name__
+        return f"{cls_name}({dict(self)})"
 
     def get(self, key: str, default: Any = "") -> Union[str, Any]:
         key = key.upper()

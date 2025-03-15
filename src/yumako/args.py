@@ -16,12 +16,23 @@ class _Args(Mapping[str, str]):
     def _ensure_data(self) -> dict[str, str]:
         if self._data is None:
             self._data = {}
+            previous_flag = None
             for arg in sys.argv[1:]:
                 if "=" in arg:
                     key, value = arg.split("=", 1)
                 else:
-                    key = arg
-                    value = "true"
+                    if previous_flag:
+                        self._data[previous_flag] = arg
+                        previous_flag = None
+                        continue
+                    else:
+                        key = arg
+                        value = "true"
+                if key.startswith("--"):
+                    key = key[2:]
+                    previous_flag = key
+                else:
+                    previous_flag = None
                 if key in self._data:
                     raise ValueError(f"Duplicate key: {key}")
                 self._data[key] = value
@@ -38,6 +49,15 @@ class _Args(Mapping[str, str]):
 
     def __len__(self) -> "int":
         return len(self._ensure_data())
+
+    def __str__(self) -> str:
+        """Return a readable string representation of arguments."""
+        return str(self._ensure_data())
+
+    def __repr__(self) -> str:
+        """Return a detailed string representation for debugging."""
+        cls_name = self.__class__.__name__
+        return f"{cls_name}({self._ensure_data()})"
 
     def bool(self, k: str, default: bool = False) -> bool:
         v = self.get(k)
