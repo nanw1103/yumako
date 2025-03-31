@@ -28,7 +28,7 @@ def _with_file_cache(fn_populate_data: Callable[[], T], file_name: str, ttl_seco
             file_modified = datetime.fromtimestamp(os.path.getmtime(file_name))
             delta_seconds = (datetime.now() - file_modified).total_seconds()
             if delta_seconds <= ttl_seconds:
-                logger.info(f"Using file cache: {file_name}")
+                logger.debug(f"Using file cache: {file_name}")
                 with open(file_name) as f:
                     data = json.load(f)
                     return cast(T, data)
@@ -39,14 +39,14 @@ def _with_file_cache(fn_populate_data: Callable[[], T], file_name: str, ttl_seco
 
     try:
         if data is not None:
-            logger.info(f"Writing cache: {file_name}")
+            logger.debug(f"Writing cache: {file_name}")
             dir_name = os.path.dirname(file_name)
             if dir_name:
                 os.makedirs(dir_name, exist_ok=True)
             with open(file_name, "w") as f:
                 json.dump(data, f, indent=4)
         else:
-            logger.info(f"Empty data: {file_name}")
+            logger.debug(f"Empty data: {file_name}")
     except Exception as e:
         logger.error(f"Error saving cache {file_name}: {str(e)}")
 
