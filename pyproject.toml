@@ -1,6 +1,6 @@
 [project]
 name = "yumako"
-version = "0.1.26"
+version = "0.1.27"
 description = "Vanilla python utilities, for humans."
 authors = [{ name="Nanw1103", email="nanw1103@gmail.com" }]
 readme = "README.md"
