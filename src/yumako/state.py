@@ -22,6 +22,10 @@ class StateFile:
     StateFile provides a dictionary-like interface to store and retrieve
     values in a JSON file. It supports automatic flushing to disk and
     maintains an in-memory cache for performance.
+
+    Can be used as a context manager:
+        with StateFile("path/to/file.json") as state:
+            state.set("key", "value")
     """
 
     def __init__(self, file_path: str, auto_flush: bool = True) -> None:
@@ -40,6 +44,28 @@ class StateFile:
         dir_name: str = os.path.dirname(file_path)
         if dir_name:
             pathlib.Path(dir_name).mkdir(parents=True, exist_ok=True)
+
+    def __enter__(self) -> "StateFile":
+        """
+        Enter the context manager.
+
+        Returns:
+            The StateFile instance itself
+        """
+        return self
+
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        """
+        Exit the context manager.
+
+        Ensures any pending changes are flushed to disk before exiting.
+
+        Args:
+            exc_type: The type of exception that was raised, if any
+            exc_val: The exception instance that was raised, if any
+            exc_tb: The traceback for the exception, if any
+        """
+        self.flush()
 
     def _data(self, reload: bool = False) -> dict[str, Any]:
         """
@@ -94,6 +120,7 @@ class StateFile:
         Returns:
             The value associated with the key, or the default if not found
         """
+        key = str(key)  # because we are storing settings in JSON encoding, number keys will be converted to string.
         return self._data(reload).get(key, default)
 
     def set(self, key: str, value: Any) -> None:
@@ -107,6 +134,7 @@ class StateFile:
         If auto_flush is enabled, changes are immediately written to disk.
         """
         data = self._data()
+        key = str(key)  # because we are storing settings in JSON encoding, number keys will be converted to string.
         existing = data.get(key)
         if existing == value:
             return
@@ -137,6 +165,7 @@ class StateFile:
         If auto_flush is enabled, changes are immediately written to disk.
         If the key doesn't exist, this method does nothing.
         """
+        key = str(key)  # because we are storing settings in JSON encoding, number keys will be converted to string.
         data = self._data(reload)
         if key not in data:
             return

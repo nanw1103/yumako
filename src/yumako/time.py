@@ -3,17 +3,19 @@ from datetime import datetime, timedelta, timezone
 from typing import Union
 
 
-def display(d: timedelta, use_double_digits: bool = False) -> str:
+def display(d: Union[timedelta, int], use_double_digits: bool = False) -> str:
     """
     Format a timedelta into a human-readable string.
 
     Args:
-        d: The timedelta to format
+        d: The timedelta or number of seconds to format
         use_double_digits: If True, pad numbers with leading zeros
 
     Returns:
         A formatted string like "1y2w" or "01y02w" depending on use_double_digits
     """
+    if isinstance(d, int):
+        d = timedelta(seconds=d)
     is_negative = d.total_seconds() < 0
     if is_negative:
         d = abs(d)
