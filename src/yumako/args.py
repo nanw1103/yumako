@@ -72,12 +72,10 @@ class _Args(Mapping[str, str]):
         return int(v)
 
     @overload
-    def get(self, k: str) -> Optional[str]:
-        ...
+    def get(self, k: str) -> Optional[str]: ...
 
     @overload
-    def get(self, k: str, default: Any) -> Union[str, Any]:
-        ...
+    def get(self, k: str, default: Any) -> Union[str, Any]: ...
 
     def get(self, k: str, default: Optional[Any] = None) -> Union[str, Optional[Any]]:
         data = self._ensure_data()

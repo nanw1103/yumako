@@ -1,6 +1,6 @@
 import re as __re
 from datetime import datetime, timedelta, timezone
-from typing import Union
+from typing import Optional, Union
 
 
 def display(d: Union[timedelta, int], use_double_digits: bool = False) -> str:
@@ -80,12 +80,18 @@ def _parse_iso_with_colon_offset2(x: str) -> datetime:
 # Try parsing common formats
 _all_human_time_formats = [
     # Unix timestamps
-    (r"^\d{13}$", lambda x: datetime.fromtimestamp(int(x) / 1000, tz=timezone.utc)),
-    (r"^\d{10}$", lambda x: datetime.fromtimestamp(int(x), tz=timezone.utc)),
-    (r"^\d+\.\d+$", lambda x: datetime.fromtimestamp(float(x), tz=timezone.utc)),
+    (r"^\d{13}$", lambda x: datetime.fromtimestamp(int(x) / 1000)),
+    (r"^\d{10}$", lambda x: datetime.fromtimestamp(int(x))),
+    (r"^\d+\.\d+$", lambda x: datetime.fromtimestamp(float(x))),
     # ISO formats
-    (r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$", "%Y-%m-%dT%H:%M:%S.%fZ"),
-    (r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$", "%Y-%m-%dT%H:%M:%SZ"),
+    (
+        r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$",
+        lambda x: datetime.strptime(x[:-1], "%Y-%m-%dT%H:%M:%S.%f").replace(tzinfo=timezone.utc),
+    ),
+    (
+        r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$",
+        lambda x: datetime.strptime(x[:-1], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc),
+    ),
     (r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$", "%Y-%m-%dT%H:%M:%S"),
     (r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$", "%Y-%m-%d %H:%M:%S"),
     (
@@ -100,9 +106,8 @@ _all_human_time_formats = [
     (
         r"^\d{2}:\d{2}$",
         lambda x: datetime.combine(
-            datetime.now(timezone.utc).date(),
+            datetime.now().date(),
             datetime.strptime(x, "%H:%M").time(),
-            tzinfo=timezone.utc,
         ),
     ),
     # Non-standard formats
@@ -148,18 +153,16 @@ _all_human_time_formats = [
     (
         r"^\d{2}:\d{2}:\d{2}$",
         lambda x: datetime.combine(
-            datetime.now(timezone.utc).date(),
+            datetime.now().date(),
             datetime.strptime(x, "%H:%M:%S").time(),
-            tzinfo=timezone.utc,
         ),
     ),
     # Time only (HH:MM)
     (
         r"^\d{2}:\d{2}$",
         lambda x: datetime.combine(
-            datetime.now(timezone.utc).date(),
+            datetime.now().date(),
             datetime.strptime(x, "%H:%M").time(),
-            tzinfo=timezone.utc,
         ),
     ),
 ]
@@ -168,65 +171,101 @@ _all_human_time_formats = [
 _COMPILED_PATTERNS = [(__re.compile(pattern), handler) for pattern, handler in _all_human_time_formats]
 
 
-def of(human_time: Union[str, datetime, int, float]) -> datetime:
+def of(human_time: Union[str, datetime, int, float], tz: Optional[timezone] = None) -> datetime:
     """
     Convert various time formats (ISO-8601, Unix timestamps, relative times, etc.) to a datetime object.
+    Follows Python's datetime conventions: returns naive datetimes by default, timezone-aware only when specified.
 
     Args:
         human_time: Input time in one of these formats:
-            - int: Unix timestamp in milliseconds
-            - datetime: Returns the input unchanged
+            - int: Unix timestamp in seconds (treated as local time, like Python's fromtimestamp())
+            - float: Unix timestamp in seconds (treated as local time, like Python's fromtimestamp())
+            - datetime: Converts to target timezone if specified
             - str: One of:
-                - "now": Current UTC time
+                - "now": Current time (naive datetime, like Python's datetime.now())
                 - Relative time with +/- (e.g. "-1h", "-7d","+30m", "+1w")
                 - Relative time with multiple units (e.g. "-1h30m", "+1w2d", "-7d12h30m")
                 - Unix timestamp in milliseconds as string (e.g. "1734010792148") or seconds (e.g. "1734010792")
                 - ISO formats:
-                    - With milliseconds and Z (e.g. "2023-12-04T00:19:22.854Z")
-                    - With Z (e.g. "2023-12-04T00:19:22Z")
-                    - Without timezone (e.g. "2023-12-04T00:19:22")
-                    - With space separator (e.g. "2023-12-04 00:19:22")
-                    - Time only with Z (e.g. "00:19:22Z")
-                    - Date only (e.g. "2023-12-04")
-                    - Time only (e.g. "00:19")
+                    - With milliseconds and Z (e.g. "2023-12-04T00:19:22.854Z") - UTC timezone
+                    - With Z (e.g. "2023-12-04T00:19:22Z") - UTC timezone
+                    - Without timezone (e.g. "2023-12-04T00:19:22") - naive datetime
+                    - With space separator (e.g. "2023-12-04 00:19:22") - naive datetime
+                    - Time only with Z (e.g. "00:19:22Z") - UTC timezone
+                    - Date only (e.g. "2023-12-04") - naive datetime
+                    - Time only (e.g. "00:19") - naive datetime
                     - With timezone offset (e.g. "2023-12-04T00:19:22+01:00", "2023-12-04T00:19:22-0500")
                         Valid offsets are between -14:00 and +14:00
                 - Common formats:
-                    - With milliseconds (e.g. "2023-12-04 00:19:22.854")
-                    - US date (e.g. "12/04/2023")
-                    - Dotted date (e.g. "2023.12.04")
-                    - Compact date (e.g. "20231204")
-                    - Forward slash date (e.g. "2023/12/04")
-                    - RFC 2822 (e.g. "Mon, 04 Dec 2023 00:19:22 +0000")
-                    - European dates (e.g. "04-12-2023", "04/12/2023", "04.12.2023")
+                    - With milliseconds (e.g. "2023-12-04 00:19:22.854") - naive datetime
+                    - US date (e.g. "12/04/2023") - naive datetime
+                    - Dotted date (e.g. "2023.12.04") - naive datetime
+                    - Compact date (e.g. "20231204") - naive datetime
+                    - Forward slash date (e.g. "2023/12/04") - naive datetime
+                    - RFC 2822 (e.g. "Mon, 04 Dec 2023 00:19:22 +0000") - timezone-aware
+                    - European dates (e.g. "04-12-2023", "04/12/2023", "04.12.2023") - naive datetime
                     - Month name formats:
-                        - Short with comma (e.g. "Dec 4, 2023")
-                        - Short without comma (e.g. "Dec 4 2023")
-                        - Day first (e.g. "4 Dec 2023")
-                        - Full month (e.g. "December 4, 2023")
+                        - Short with comma (e.g. "Dec 4, 2023") - naive datetime
+                        - Short without comma (e.g. "Dec 4 2023") - naive datetime
+                        - Day first (e.g. "4 Dec 2023") - naive datetime
+                        - Full month (e.g. "December 4, 2023") - naive datetime
+
+    Examples:
+        >>> of("-1d")  # 1 day ago (naive datetime)
+        >>> of("+2w")  # 2 weeks from now (naive datetime)
+        >>> of("2023-12-04T12:30:45+02:00")  # Keeps +02:00 timezone
+        >>> of("2023-12-04T12:30:45+02:00", tz=timezone.utc)  # Converts to UTC (10:30 UTC)
+        >>> of("2023-12-04 12:30:45")  # Naive datetime (no timezone)
+        >>> of("2023-12-04 12:30:45", tz=timezone.utc)  # Converts to UTC
+        >>> of("now")  # Current time (naive datetime)
+        >>> of("now", tz=timezone.utc)  # Current time in UTC
+        >>> of(1701701445)  # Unix timestamp (naive datetime, local time)
+        >>> of(1701701445, tz=timezone.utc)  # Unix timestamp converted to UTC
+
+    Args:
+        tz: Target timezone for the returned datetime object.
+            - None (default): Return naive datetime (following Python convention)
+            - timezone.utc: Convert result to UTC
+            - Other timezone: Convert result to specified timezone
 
     Returns:
-        datetime: A timezone-aware datetime object
+        datetime: A datetime object following Python conventions:
+            - Naive datetime (no timezone info) when tz=None
+            - Timezone-aware datetime when tz is specified
 
     Raises:
         ValueError: If the input format is not recognized or invalid (e.g., timezone offset > ±14:00)
-
-    Examples:
-        >>> of("-1d")
-        minus 1 day from now
-        >>> of("+2w")
-        plus 2 weeks from now
-        >>> of("2023-12-04T12:30:45+02:00")
-        Parsing common time formats
     """
+
+    def convert_to_target_timezone(datetime_obj: datetime) -> datetime:
+        """Convert datetime to target timezone if specified."""
+        if tz is None:
+            # Honor original timezone (Python convention)
+            # Only make naive if the input was already naive
+            return datetime_obj
+        else:
+            # Convert to target timezone
+            if datetime_obj.tzinfo is None:
+                # Naive input: assume it's in local timezone, then convert to target
+                local_tz = datetime.now().astimezone().tzinfo
+                dt_with_tz = datetime_obj.replace(tzinfo=local_tz)
+                return dt_with_tz.astimezone(tz)
+            else:
+                # Timezone-aware input: convert to target timezone
+                return datetime_obj.astimezone(tz)
+
     if isinstance(human_time, int):
-        return datetime.fromtimestamp(human_time / 1000, tz=timezone.utc)
+        # Python convention: fromtimestamp() returns naive datetime (local time)
+        dt = datetime.fromtimestamp(human_time)
+        return convert_to_target_timezone(dt)
 
     if isinstance(human_time, float):
-        return datetime.fromtimestamp(human_time / 1000, tz=timezone.utc)
+        # Python convention: fromtimestamp() returns naive datetime (local time)
+        dt = datetime.fromtimestamp(human_time)
+        return convert_to_target_timezone(dt)
 
     if isinstance(human_time, datetime):
-        return human_time.astimezone(timezone.utc)
+        return convert_to_target_timezone(human_time)
 
     if not isinstance(human_time, str):
         raise ValueError("Invalid input type: " + type(human_time).__name__)
@@ -236,7 +275,9 @@ def of(human_time: Union[str, datetime, int, float]) -> datetime:
     human_time = human_time.upper()  # Convert to uppercase for simpler regex matching
 
     if human_time == "NOW":
-        return datetime.now(timezone.utc)
+        # Python convention: datetime.now() returns naive datetime (local time)
+        dt = datetime.now()
+        return convert_to_target_timezone(dt)
 
     # Handle relative times (+/-)
     if human_time.startswith("-") or human_time.startswith("+"):
@@ -245,33 +286,29 @@ def of(human_time: Union[str, datetime, int, float]) -> datetime:
         # Remove leading +/- and split into components
         time_str = human_time[1:]
         time_delta = timedelta(seconds=duration(time_str))
-        return datetime.now(timezone.utc) + time_delta * sign
+        # Python convention: datetime.now() returns naive datetime (local time)
+        dt = datetime.now() + time_delta * sign
+        return convert_to_target_timezone(dt)
 
     # Try each format pattern
     for pattern, fmt in _COMPILED_PATTERNS:
         if __re.match(pattern, human_time):
             try:
                 if callable(fmt):
-                    dt: datetime = fmt(human_time)
+                    dt = fmt(human_time)
                     if not isinstance(dt, datetime):
                         raise ValueError(f"Expected datetime, got {type(dt).__name__}")
-                    return dt
+                    return convert_to_target_timezone(dt)
                 if isinstance(fmt, list):
                     # Try multiple formats
                     for f in fmt:
                         try:
                             dt = datetime.strptime(human_time, f)
-                            if dt.tzinfo is None:
-                                return dt.replace(tzinfo=timezone.utc)  # Treat naive times as UTC
-                            else:
-                                return dt.astimezone(timezone.utc)
+                            return convert_to_target_timezone(dt)
                         except ValueError:
                             continue
                 dt = datetime.strptime(human_time, str(fmt))
-                if dt.tzinfo is None:
-                    return dt.replace(tzinfo=timezone.utc)
-                else:
-                    return dt.astimezone(timezone.utc)
+                return convert_to_target_timezone(dt)
             except ValueError:
                 continue
 
@@ -353,3 +390,30 @@ def duration(human_time: str) -> int:
         )
 
     raise ValueError(f"Unsupported duration format: {human_time}")
+
+
+def stale(when: Union[str, datetime, int, float], tz: Optional[timezone] = None) -> str:
+    """Calculate timedelta from now and format in a human-friendly format.
+
+    Args:
+        when: Input time in various formats (same as of() function)
+        tz: Target timezone for ambiguous 'when' inputs only.
+            - None (default): Use local timezone for ambiguous inputs
+            - timezone.utc: Use UTC for ambiguous inputs
+            - Other timezone: Use specified timezone for ambiguous inputs
+
+    Returns:
+        str: Human-friendly time difference (e.g., "1h", "2d", "3w")
+
+    Examples:
+        >>> stale("2023-12-04 12:30:45")  # Time since that local time
+        >>> stale("2023-12-04T12:30:45Z", tz=timezone.utc)  # Time since that UTC time
+        >>> stale("-1h")  # Time since 1 hour ago in local timezone
+    """
+    the_time = of(when, tz=tz)
+    if the_time.tzinfo is not None:
+        the_time = the_time.replace(tzinfo=None)
+    now = datetime.now()
+
+    td = now - the_time
+    return display(td)
