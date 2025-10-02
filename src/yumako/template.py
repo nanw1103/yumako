@@ -1,8 +1,10 @@
 import re as __re
+from typing import Any
 
+__all__ = ["replace"]
 
 def replace(
-    text: str, mapping: dict, strict_on_unresolved_vars: bool = True, strict_on_unused_var: bool = False
+    text: str, mapping: dict[str, Any], strict_on_unresolved_vars: bool = True, strict_on_unused_var: bool = False
 ) -> str:
     unused_vars = set(mapping.keys())
     for k, v in mapping.items():

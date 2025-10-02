@@ -2,15 +2,18 @@
 State management module for persisting application state to JSON files.
 
 This module provides a simple key-value store backed by JSON files for
-persisting application state across runs. It includes both a StateFile class
-for managing individual state files and convenience functions for working
-with a default global state file.
+persisting application state across runs. It includes a StateFile class
+for managing individual state files and a file() function for singleton
+state file management.
 """
 
 import json
 import os
 import pathlib
-from typing import Any, Optional, TypeVar, Union, cast
+import threading
+from typing import Any, Optional, TypeVar, Union
+
+__all__ = ["state_file"]
 
 T = TypeVar("T", bound=Any)  # Generic type for better return typing
 
@@ -178,48 +181,55 @@ class StateFile:
         """
         Delete the state file from disk and clear the in-memory cache.
         """
-        self._cache = {}
+        self.discard()
         if os.path.exists(self._path):
             os.remove(self._path)
+
+    def discard(self) -> None:
+        """
+        Discard the state file from memory and clear the in-memory cache. But keep the file on disk.
+        """
+        self._cache = {}
         self._dirty = False
+        with _lock:
+            _file_map.pop(self._path, None)
+
+    def __getattr__(self, name: str) -> Any:
+        """
+        Enable dot property access for reading values.
+
+        This allows accessing state values using dot notation:
+        state.propName instead of state.get("propName")
+
+        Args:
+            name: The property name to access
+
+        Returns:
+            The value associated with the property name, or None if not found
+        """
+        if name.startswith("_"):
+            return object.__getattribute__(self, name)
+        return self.get(name)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name.startswith("_"):
+            object.__setattr__(self, name, value)
+            return
+        self.set(name, value)
+
+    def __str__(self) -> str:
+        return str(self._data())
 
 
-# Module-level state for managing the default StateFile instance
-_default: Optional[StateFile] = None
+_file_map: dict[str, StateFile] = {}
+_lock = threading.Lock()
 
 
-def init_default(file_path: str) -> StateFile:
-    """
-    Initialize the default StateFile with the given path.
-
-    Args:
-        file_path: Path to the JSON file for the default state
-
-    Returns:
-        The default StateFile instance
-
-    Raises:
-        ValueError: If the default StateFile was already initialized with a different path
-    """
-    global _default
-    if _default is None:
-        _default = StateFile(file_path)
-    else:
-        if _default._path != file_path:
-            raise ValueError("StateFile already initialized with a different file path: " + _default._path)
-    return _default
-
-
-def default_state() -> StateFile:
-    """
-    Get the default StateFile instance.
-
-    If not already initialized, creates a StateFile with the default path ".state".
-
-    Returns:
-        The default StateFile instance
-    """
-    global _default
-    if _default is None:
-        init_default(".state")
-    return cast(StateFile, _default)  # We know it's not None after init_default
+def state_file(file_path: str) -> StateFile:
+    file_path = os.path.abspath(os.path.expanduser(file_path))
+    with _lock:
+        if file_path in _file_map:
+            return _file_map[file_path]
+        state_file = StateFile(file_path)
+        _file_map[file_path] = state_file
+        return state_file

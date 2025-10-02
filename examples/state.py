@@ -1,18 +1,12 @@
 #!/usr/bin/env -S python -W ignore
 
-from yumako.state import default_state
+from yumako.state import state_file
 
-# init_default(".state")
+state = state_file(".state")  # Create a state file.
 
-state = default_state()
-
-# Update a state. This is by default persisted to disk.
-state.set("k1", "v1")
-
-# Read a state.This is by default read from RAM cache.
-# But if this is a new process, it will also be read from disk.
-v = state.get("k1")
-print(v)
+state.k1 = "v1"  # Update a state. This is by default persisted to disk.
+print(state.k1)  # "v1". Load from disk if not in RAM cache.
+print(state.k2)  # None.
 
 # Cleanup the state file.
 state.delete()

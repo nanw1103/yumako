@@ -51,11 +51,9 @@ class _Args(Mapping[str, str]):
         return len(self._ensure_data())
 
     def __str__(self) -> str:
-        """Return a readable string representation of arguments."""
         return str(self._ensure_data())
 
     def __repr__(self) -> str:
-        """Return a detailed string representation for debugging."""
         cls_name = self.__class__.__name__
         return f"{cls_name}({self._ensure_data()})"
 

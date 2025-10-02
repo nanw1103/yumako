@@ -3,6 +3,8 @@ from collections.abc import ItemsView, Iterator, KeysView, MutableMapping, Mutab
 from typing import TypeVar, cast
 from weakref import WeakSet, WeakValueDictionary
 
+__all__ = ["LRUDict", "LRUSet"]
+
 T = TypeVar("T")  # Item type for Set
 K = TypeVar("K")  # Key type
 V = TypeVar("V")  # Value type

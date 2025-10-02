@@ -572,6 +572,48 @@ def test_display_edge_cases() -> None:
     assert display(timedelta(days=366)) == "1y1d"  # Just over a year
 
 
+def test_display_with_float_input() -> None:
+    """Test display function with float inputs for sub-second precision."""
+    # Test basic float values
+    assert display(1.5) == "1s"  # 1 second, 500ms
+    assert display(30.25) == "30s"  # 30 seconds, 250ms
+    assert display(65.75) == "1m5s"  # 1 minute, 5 seconds, 750ms
+
+    # Test float values with double digits
+    assert display(1.5, use_double_digits=True) == "01s"
+    assert display(30.25, use_double_digits=True) == "30s"
+    assert display(65.75, use_double_digits=True) == "01m05s"
+
+    # Test very small float values (less than 1 second)
+    assert display(0.5) == "0s"  # 500ms rounds to 0s
+    assert display(0.9) == "0s"  # 900ms rounds to 0s
+    assert display(0.1) == "0s"  # 100ms rounds to 0s
+
+    # Test float values with microseconds precision
+    assert display(1.000001) == "1s"  # 1 second + 1 microsecond
+    assert display(1.999999) == "1s"  # 1 second + 999999 microseconds
+
+    # Test negative float values
+    assert display(-1.5) == "-1s"
+    assert display(-30.25) == "-30s"
+    assert display(-65.75) == "-1m5s"
+
+    # Test large float values
+    assert display(3661.5) == "1h1m"  # 1 hour, 1 minute, 500ms
+    assert display(86400.25) == "1d"  # 1 day, 250ms
+    assert display(604800.75) == "1w"  # 1 week, 750ms
+
+    # Test float values that result in years
+    assert display(31536000.5) == "1y"  # 1 year, 500ms
+    assert display(31536000.0) == "1y"  # Exactly 1 year
+
+    # Test edge case: very small positive float
+    assert display(0.000001) == "0s"  # 1 microsecond
+
+    # Test edge case: very large float
+    assert display(315360000.0) == "10y"  # 10 years
+
+
 def test_stale_basic() -> None:
     """Test basic stale functionality with relative times."""
     # Test with recent times (should be very small or zero)

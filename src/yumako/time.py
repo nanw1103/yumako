@@ -2,13 +2,14 @@ import re as __re
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Union
 
+__all__ = ["display", "duration", "of", "stale"]
 
-def display(d: Union[timedelta, int], use_double_digits: bool = False) -> str:
+def display(d: Union[timedelta, int, float], use_double_digits: bool = False) -> str:
     """
     Format a timedelta into a human-readable string.
 
     Args:
-        d: The timedelta or number of seconds to format
+        d: The timedelta or number of seconds (int/float) to format
         use_double_digits: If True, pad numbers with leading zeros
 
     Returns:
@@ -16,6 +17,8 @@ def display(d: Union[timedelta, int], use_double_digits: bool = False) -> str:
     """
     if isinstance(d, int):
         d = timedelta(seconds=d)
+    elif isinstance(d, float):
+        d = timedelta(seconds=int(d), microseconds=int((d - int(d)) * 1_000_000))
     is_negative = d.total_seconds() < 0
     if is_negative:
         d = abs(d)

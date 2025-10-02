@@ -1,6 +1,6 @@
-# Yumako ![Yumako](doc/yumako.png) 
+# Yumako ![Yumako](doc/yumako.png)
 
-Vanilla python utilities, for humans.
+Vanilla Python utilities for humans.
 
 [![PyPI version](https://badge.fury.io/py/yumako.svg)](https://badge.fury.io/py/yumako)
 [![Python Versions](https://img.shields.io/pypi/pyversions/yumako.svg)](https://pypi.org/project/yumako/)
@@ -17,45 +17,60 @@ Vanilla python utilities, for humans.
 [![pylint: errors-only](https://img.shields.io/badge/pylint-errors--only-brightgreen)](https://github.com/pylint-dev/pylint)
 
 
-## What Yumako should include
+## What Yumako Includes
 
 - Human-friendly utilities.
-- Utilities that are for generic use cases, not domain-specific.
+- Utilities for generic use cases, not domain-specific.
 - High performance utilities.
-- Utilities based on vanilla python, no external dependencies. 
+- Utilities based on vanilla Python with no external dependencies. 
 
 
-Install:
+## Installation
 ```bash
 pip install yumako
 
 # Yumako utilities are based on vanilla python: no other dependencies.
 ```
 
-Usage:
+## Usage
 ```python
 import yumako
-# Yumako submodules are loaded only when needed.
-
-# ---------------------------------------
-# Yumako utilities are designed for human
-# ---------------------------------------
-print(yumako.time.of("2025-01-17H23:00:00.000-05:00"))  # most popular time formats
-print(yumako.time.of("-3d"))  # most intuitive human-friendly formats
-
-seconds = yumako.time.duration("3m4s")  # 3m4s -> 184 seconds
-delta = timedelta(seconds=seconds)
-print(yumako.time.display(delta))  # 3m4s
+# Yumako submodules are loaded only when needed
 
 # ---------------------------------------
 # Yumako utilities are highly performant
 # ---------------------------------------
-lru = yumako.lru.LRUDict()
+from yumako.lru import LRUDict, LRUSet
+lru = LRUDict()
 lru[1] = True
 lru["hello"] = "mortal"
+lru["ユマ果"] = "💖"
 print(lru)
 
-lru_set = yumako.lru.LRUSet()
+lru_set = LRUSet()
 lru_set.add("ユマ果")
 print(lru_set)
+
+
+# ---------------------------------------
+# Yumako utilities are handy
+# ---------------------------------------
+from yumako.state import state_file
+
+context = state_file(".state")
+context.k1 = "v1"   # Persisted to disk
+print(context.k1)   # But also cached in RAM
+
+
+# ---------------------------------------
+# Yumako utilities are designed for humans
+# ---------------------------------------
+print(yumako.time.of("2025-01-17H23:00:00.000-05:00"))  # Popular standard time formats
+print(yumako.time.of("-3d"))  # Popular intuitive human-friendly formats
+
+seconds = yumako.time.duration("3m4s")  # "3m4s" -> 184 seconds
+delta = timedelta(seconds=seconds)
+print(yumako.time.display(delta))  # "3m4s"
 ```
+
+More [examples](examples/).
