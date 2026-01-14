@@ -4,6 +4,7 @@ from typing import Optional, Union
 
 __all__ = ["display", "duration", "of", "stale"]
 
+
 def display(d: Union[timedelta, int, float], use_double_digits: bool = False) -> str:
     """
     Format a timedelta into a human-readable string.
@@ -329,7 +330,7 @@ def duration(human_time: str) -> int:
             human format (e.g. '1h30m', '1w2d', '7d12h30m')
 
     Returns:
-        timedelta: The parsed duration as a timedelta object
+        int: The parsed duration in seconds
 
     Raises:
         ValueError: If the duration string format is not supported
@@ -414,9 +415,11 @@ def stale(when: Union[str, datetime, int, float], tz: Optional[timezone] = None)
         >>> stale("-1h")  # Time since 1 hour ago in local timezone
     """
     the_time = of(when, tz=tz)
-    if the_time.tzinfo is not None:
-        the_time = the_time.replace(tzinfo=None)
-    now = datetime.now()
+
+    if the_time.tzinfo is None:
+        now = datetime.now()
+    else:
+        now = datetime.now(the_time.tzinfo)
 
     td = now - the_time
     return display(td)

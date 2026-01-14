@@ -664,21 +664,23 @@ def test_stale_with_datetime() -> None:
 
 def test_stale_with_timestamps() -> None:
     """Test stale function with timestamp inputs."""
-    now = datetime.now(timezone.utc)
 
     # Test with integer timestamp (1 hour ago)
+    now = datetime.now()  # Use local time to avoid DST issues
     one_hour_ago = now - timedelta(hours=1)
     timestamp_int = int(one_hour_ago.timestamp())
     result = stale(timestamp_int)
     assert result == "1h"
 
     # Test with string timestamp (2 days ago)
+    now = datetime.now()  # Use local time to avoid DST issues
     two_days_ago = now - timedelta(days=2)
     timestamp_str = str(int(two_days_ago.timestamp()))
     result = stale(timestamp_str)
     assert result == "2d"
 
     # Test with float timestamp (1 week ago)
+    now = datetime.now()  # Use local time to avoid DST issues
     one_week_ago = now - timedelta(weeks=1)
     timestamp_float = one_week_ago.timestamp()
     result = stale(timestamp_float)
@@ -940,10 +942,13 @@ def test_stale_tz_parameter_comprehensive() -> None:
     assert result_local == "1h"  # Should be 1h
 
     # Test stale with explicit timezone input and tz parameter
-    explicit_tz_input = "2023-12-04T12:30:45+02:00"
+    # Create a time 1 hour ago in UTC+02:00 timezone
+    utc_plus_2 = timezone(timedelta(hours=2))
+    one_hour_ago_plus2 = datetime.now(utc_plus_2) - timedelta(hours=1)
+    explicit_tz_input = one_hour_ago_plus2.strftime("%Y-%m-%dT%H:%M:%S+02:00")
     result_explicit = stale(explicit_tz_input, tz=timezone.utc)
     # Should convert +02:00 to UTC for comparison
-    assert result_explicit.startswith("1")  # Should be around 1 hour (depending on current time)
+    assert result_explicit == "1h"
 
     # Test stale with relative time (tz parameter doesn't affect relative times)
     result_rel = stale("-1h")
@@ -953,7 +958,9 @@ def test_stale_tz_parameter_comprehensive() -> None:
 def test_of_stale_tz_consistency() -> None:
     """Test consistency between of() and stale() with same tz parameter."""
     # Test that of() and stale() produce consistent results with same tz
-    test_time = "2023-12-04 12:30:45"
+    # Use a recent time (1 day ago) instead of hardcoded old date
+    one_day_ago = datetime.now() - timedelta(days=1)
+    test_time = one_day_ago.strftime("%Y-%m-%d %H:%M:%S")
 
     # Both should use UTC
     dt_utc = of(test_time, tz=timezone.utc)
@@ -961,17 +968,19 @@ def test_of_stale_tz_consistency() -> None:
 
     assert dt_utc.tzinfo == timezone.utc
     # stale_utc should be a reasonable time difference (not negative or huge)
-    assert stale_utc.endswith(("h", "d", "w", "y"))
+    assert stale_utc == "1d"
 
     # Both should use naive datetime (default)
     dt_local = of(test_time)
     stale_local = stale(test_time)
 
     assert dt_local.tzinfo is None
-    assert stale_local.endswith(("h", "d", "w", "y"))
+    assert stale_local == "1d"
 
     # Test with explicit timezone input
-    explicit_time = "2023-12-04T12:30:45+02:00"
+    utc_plus_2 = timezone(timedelta(hours=2))
+    one_day_ago_plus2 = datetime.now(utc_plus_2) - timedelta(days=1)
+    explicit_time = one_day_ago_plus2.strftime("%Y-%m-%dT%H:%M:%S+02:00")
 
     # Both should convert to UTC
     dt_explicit_utc = of(explicit_time, tz=timezone.utc)

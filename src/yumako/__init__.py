@@ -19,15 +19,14 @@ from typing import Any as __Any
 from typing import Union as __Union
 
 if __TYPE_CHECKING:
-    from .args import args as args  # type: ignore
-    from .env import env as env  # type: ignore
-    from .state import state_file as state_file  # type: ignore
-
     # namespace grouped submodules
     from . import cache  # type: ignore
     from . import lru  # type: ignore
     from . import template  # type: ignore
     from . import time  # type: ignore
+    from .args import args as args  # type: ignore
+    from .env import env as env  # type: ignore
+    from .state import state_file as state_file  # type: ignore
 
 
 def __getattr__(name: str) -> __Union[__ModuleType, __Any]:
