@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+
+if python_cmd=$(command -v python3 2>/dev/null) && "$python_cmd" --version >/dev/null 2>&1; then
+    PYTHON_CMD=$python_cmd
+elif python_cmd=$(command -v python 2>/dev/null) && "$python_cmd" --version >/dev/null 2>&1; then
+    PYTHON_CMD=$python_cmd
+else
+    echo "ERROR: Neither python nor python3 is available or executable." >&2
+    exit 100
+fi
+
+exec "$PYTHON_CMD" "$SCRIPT_DIR/ci/dev.py" "$@"

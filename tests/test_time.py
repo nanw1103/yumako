@@ -220,6 +220,29 @@ def test_of_month_name_formats() -> None:
     assert result4.day == 4
 
 
+def test_of_kibana_format() -> None:
+    # Kibana/Elasticsearch style with milliseconds
+    result = of("Apr 23, 2026 @ 14:55:00.123")
+    assert result.tzinfo is None
+    assert result.year == 2026
+    assert result.month == 4
+    assert result.day == 23
+    assert result.hour == 14
+    assert result.minute == 55
+    assert result.second == 0
+    assert result.microsecond == 123000
+
+    # Without milliseconds
+    result2 = of("Apr 23, 2026 @ 14:55:00")
+    assert result2.tzinfo is None
+    assert result2.year == 2026
+    assert result2.month == 4
+    assert result2.day == 23
+    assert result2.hour == 14
+    assert result2.minute == 55
+    assert result2.second == 0
+
+
 def test_of_rfc2822() -> None:
     # RFC 2822 format
     assert of("Mon, 04 Dec 2023 12:30:45 +0000") == datetime(2023, 12, 4, 12, 30, 45, tzinfo=timezone.utc)

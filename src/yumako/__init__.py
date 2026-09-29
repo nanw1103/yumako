@@ -10,6 +10,8 @@ __all__ = [
     "lru",
     "template",
     "time",
+    "fstore",
+    "jsondot",
 ]
 
 import importlib as __importlib
@@ -21,6 +23,8 @@ from typing import Union as __Union
 if __TYPE_CHECKING:
     # namespace grouped submodules
     from . import cache  # type: ignore
+    from . import fstore  # type: ignore
+    from . import jsondot  # type: ignore
     from . import lru  # type: ignore
     from . import template  # type: ignore
     from . import time  # type: ignore

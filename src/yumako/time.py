@@ -70,7 +70,7 @@ def _parse_iso_with_colon_offset(x: str) -> datetime:
     if abs(int(x[-5:-3])) > 14:
         raise ValueError("Invalid timezone offset")
     return datetime.strptime(
-        f"{x[:-6]}{x[-6:].replace(':','')}",
+        f"{x[:-6]}{x[-6:].replace(':', '')}",
         "%Y-%m-%dT%H:%M:%S.%f%z" if "." in x else "%Y-%m-%dT%H:%M:%S%z",
     )
 
@@ -144,6 +144,9 @@ _all_human_time_formats = [
     (r"^[A-Z]{3} \d{1,2} \d{4}$", "%b %d %Y"),  # DEC 4 2023
     (r"^\d{1,2} [A-Z]{3} \d{4}$", "%d %b %Y"),  # 4 DEC 2023
     (r"^[A-Z]{6,9} \d{1,2}, \d{4}$", "%B %d, %Y"),  # DECEMBER 4, 2023
+    # Kibana/Elasticsearch style (e.g. "Apr 23, 2026 @ 14:55:00.000")
+    (r"^[A-Z]{3} \d{1,2}, \d{4} @ \d{2}:\d{2}:\d{2}\.\d+$", "%b %d, %Y @ %H:%M:%S.%f"),
+    (r"^[A-Z]{3} \d{1,2}, \d{4} @ \d{2}:\d{2}:\d{2}$", "%b %d, %Y @ %H:%M:%S"),
     # Time only with Z
     (
         r"^\d{2}:\d{2}:\d{2}Z$",
