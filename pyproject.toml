@@ -1,6 +1,6 @@
 [project]
 name = "yumako"
-version = "0.1.40"
+version = "0.1.41"
 description = "Vanilla python utilities, for humans."
 authors = [{ name="Nanw1103", email="nanw1103@gmail.com" }]
 readme = "README.md"
@@ -29,8 +29,6 @@ python = "^3.9"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
-black = "^24.10.0"
-isort = "^5.13.2"
 mypy = "^1.14.1"
 ruff = "^0.9.2"
 tomlkit = "^0.13.2"
@@ -39,23 +37,6 @@ pylint = "^3.3.3"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.black]
-line-length = 120
-target-version = ['py39']
-include = '\.pyi?$'
-extend-exclude = '''
-# A regex preceded with ^/ will apply only to files and directories
-# in the root of the project.
-^/.venv
-'''
-
-[tool.isort]
-profile = "black"
-multi_line_output = 3
-line_length = 120
-skip = [".venv"]
-src_paths = ["src", "tests"]
 
 [tool.mypy]
 python_version = "3.9"
