@@ -1,6 +1,6 @@
 [project]
 name = "yumako"
-version = "0.1.42"
+version = "0.1.43"
 description = "Vanilla python utilities, for humans."
 authors = [{ name="Nanw1103", email="nanw1103@gmail.com" }]
 readme = "README.md"
@@ -49,7 +49,7 @@ exclude = [
 ]
 
 [tool.ruff]
-line-length = 120
+line-length = 140
 target-version = "py39"
 src = ["src", "tests"]
 exclude = [
