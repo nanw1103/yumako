@@ -4,9 +4,7 @@ from typing import Any
 __all__ = ["replace"]
 
 
-def replace(
-    text: str, mapping: dict[str, Any], raise_on_unresolved_vars: bool = True, raise_on_unused_vars: bool = False
-) -> str:
+def replace(text: str, mapping: dict[str, Any], raise_on_unresolved_vars: bool = True, raise_on_unused_vars: bool = False) -> str:
     # Validate paired braces
     open_count = text.count("{{")
     close_count = text.count("}}")

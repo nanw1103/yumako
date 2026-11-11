@@ -59,9 +59,7 @@ def _with_file_cache(fn_populate_data: Callable[[], T], file_name: str, ttl_seco
     return cast(T, data)
 
 
-def file_cache(
-    file_name: str, ttl: Union[str, int] = "1d", with_ram_cache: bool = True
-) -> Callable[[Callable[..., T]], Callable[..., T]]:
+def file_cache(file_name: str, ttl: Union[str, int] = "1d", with_ram_cache: bool = True) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """Decorator that caches function results in a JSON file.
 
     Args:
@@ -237,9 +235,7 @@ class FileCollection:
         ttl_list_seconds = time.duration(ttl_list)
         ttl_item_seconds = time.duration(ttl_item)
         if ttl_item_seconds < ttl_list_seconds:
-            raise ValueError(
-                f"ttl_item must be >= ttl_list (got ttl_item={ttl_item_seconds}s, ttl_list={ttl_list_seconds}s)"
-            )
+            raise ValueError(f"ttl_item must be >= ttl_list (got ttl_item={ttl_item_seconds}s, ttl_list={ttl_list_seconds}s)")
 
         # Store TTL values in seconds for internal use
         self._ttl_list_s = ttl_list_seconds
@@ -262,9 +258,7 @@ class FileCollection:
 
         if id_field_name is not None:
             # Create extractor from field name
-            self.id_extractor = lambda obj: str(
-                obj.get(id_field_name) if isinstance(obj, dict) else getattr(obj, id_field_name)
-            )
+            self.id_extractor = lambda obj: str(obj.get(id_field_name) if isinstance(obj, dict) else getattr(obj, id_field_name))
         elif id_extractor is None:
             # Default: extract from "id" field
             self.id_extractor = lambda obj: str(obj.get("id") if isinstance(obj, dict) else obj.id)
@@ -552,21 +546,13 @@ class FileCollection:
             item_time = meta.get("items", {}).get(item_id)
 
             # Check if item is in metadata and its cache is fresh
-            if (
-                not refresh
-                and item_time is not None
-                and not FileCollection._is_expired(current_time_s - item_time, self._ttl_item_s)
-            ):
+            if not refresh and item_time is not None and not FileCollection._is_expired(current_time_s - item_time, self._ttl_item_s):
                 # Item exists in metadata and item TTL is fresh
                 return self._load_item_from_file(item_id, meta)
 
             # Item not in metadata or item TTL expired
             # Check if list TTL is also expired
-            if (
-                item_time is None
-                and list_time is not None
-                and not FileCollection._is_expired(current_time_s - list_time, self._ttl_list_s)
-            ):
+            if item_time is None and list_time is not None and not FileCollection._is_expired(current_time_s - list_time, self._ttl_list_s):
                 # Item not in metadata but list is fresh - item doesn't exist
                 return None
 

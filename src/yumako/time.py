@@ -81,6 +81,14 @@ def _parse_iso_with_colon_offset2(x: str) -> datetime:
     return datetime.strptime(x, "%Y-%m-%dT%H:%M:%S.%f%z" if "." in x else "%Y-%m-%dT%H:%M:%S%z")
 
 
+def _parse_unix_date_format(x: str) -> datetime:
+    dt = datetime.strptime(x, "%a %b %d %H:%M:%S %Z %Y")
+    tz_abbr = x.split()[4]
+    if tz_abbr in ("UTC", "GMT"):
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
 # Try parsing common formats
 _all_human_time_formats = [
     # Unix timestamps
@@ -124,6 +132,11 @@ _all_human_time_formats = [
     (
         r"^[A-Z]{3}, \d{2} [A-Z]{3} \d{4} \d{2}:\d{2}:\d{2} [+-]\d{4}$",
         "%a, %d %b %Y %H:%M:%S %z",
+    ),
+    # Unix `date` command output (e.g. "Tue Sep 29 06:05:18 UTC 2026")
+    (
+        r"^[A-Z]{3} [A-Z]{3} {1,2}\d{1,2} \d{2}:\d{2}:\d{2} [A-Z]{2,5} \d{4}$",
+        _parse_unix_date_format,
     ),
     # ISO with timezone offset (with colon)
     (
@@ -210,6 +223,7 @@ def of(human_time: Union[str, datetime, int, float], tz: Optional[timezone] = No
                     - Compact date (e.g. "20231204") - naive datetime
                     - Forward slash date (e.g. "2023/12/04") - naive datetime
                     - RFC 2822 (e.g. "Mon, 04 Dec 2023 00:19:22 +0000") - timezone-aware
+                    - Unix `date` command output (e.g. "Tue Sep 29 06:05:18 UTC 2026") - timezone-aware for UTC/GMT, naive otherwise
                     - European dates (e.g. "04-12-2023", "04/12/2023", "04.12.2023") - naive datetime
                     - Month name formats:
                         - Short with comma (e.g. "Dec 4, 2023") - naive datetime

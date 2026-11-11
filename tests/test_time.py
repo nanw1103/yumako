@@ -112,9 +112,7 @@ def test_of_iso_formats() -> None:
 
     # Time only with Z
     today = datetime.now(timezone.utc).date()
-    assert of("12:30:45Z") == datetime.combine(
-        today, datetime.strptime("12:30:45", "%H:%M:%S").time(), tzinfo=timezone.utc
-    )
+    assert of("12:30:45Z") == datetime.combine(today, datetime.strptime("12:30:45", "%H:%M:%S").time(), tzinfo=timezone.utc)
 
     # Date only (should return naive datetime by default)
     result_date = of("2023-12-04")
@@ -247,6 +245,13 @@ def test_of_rfc2822() -> None:
     # RFC 2822 format
     assert of("Mon, 04 Dec 2023 12:30:45 +0000") == datetime(2023, 12, 4, 12, 30, 45, tzinfo=timezone.utc)
     assert of("Mon, 04 Dec 2023 12:30:45 -0500") == datetime(2023, 12, 4, 17, 30, 45, tzinfo=timezone.utc)
+
+
+def test_of_unix_date_format() -> None:
+    # Unix `date` command output
+    assert of("Tue Sep 29 06:05:18 UTC 2026") == datetime(2026, 9, 29, 6, 5, 18, tzinfo=timezone.utc)
+    assert of("Tue Sep  1 06:05:18 UTC 2026") == datetime(2026, 9, 1, 6, 5, 18, tzinfo=timezone.utc)
+    assert of("Tue Sep 29 06:05:18 PST 2026") == datetime(2026, 9, 29, 6, 5, 18)
 
 
 def test_of_invalid_inputs() -> None:

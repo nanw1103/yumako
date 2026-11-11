@@ -122,9 +122,7 @@ class _Doc(dict[str, Any]):
     def __enter__(self) -> "_Doc":
         return self
 
-    def __exit__(
-        self, exc_type: Optional[type[BaseException]], exc_value: Optional[BaseException], traceback: Any
-    ) -> None:
+    def __exit__(self, exc_type: Optional[type[BaseException]], exc_value: Optional[BaseException], traceback: Any) -> None:
         if exc_type is None:
             self._store.save(self._name, self)
 
@@ -158,9 +156,7 @@ class FStore:
         path = os.path.realpath(os.path.expanduser(store_path)) if store_path else None
         self._init_store(path, create, lock)
 
-    def __new__(
-        cls, store_path: Optional[str] = None, create: bool = True, lock: Optional[LockFile] = None
-    ) -> "FStore":
+    def __new__(cls, store_path: Optional[str] = None, create: bool = True, lock: Optional[LockFile] = None) -> "FStore":
         if not store_path:
             return object.__new__(cls)
         key = os.path.realpath(os.path.expanduser(store_path))

@@ -945,9 +945,7 @@ class TestFileCollectionIdFieldName:
         collection = FileCollection(
             base_path=collection_path,
             list_fn=lambda: [{"item_id": item.item_id, "name": item.name} for item in data],
-            get_fn=lambda x: (
-                {"item_id": data_lookup[x].item_id, "name": data_lookup[x].name} if x in data_lookup else None
-            ),
+            get_fn=lambda x: ({"item_id": data_lookup[x].item_id, "name": data_lookup[x].name} if x in data_lookup else None),
             id_field_name="item_id",
         )
 
